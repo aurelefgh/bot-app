@@ -194,10 +194,18 @@ function afficher(s) {
   $("nbTrades").textContent =
     s.positions.length + " / " + s.reglages.max_positions;
 
-  const gains = s.gains_latents ? Object.values(s.gains_latents) : [];
-  $("tauxReussite").textContent = gains.length
-    ? Math.round(100 * gains.filter((g) => g > 0).length / gains.length) + " %"
-    : "—";
+  // le VRAI taux de reussite : les trades fermes, resultat en poche.
+  // Tant qu'aucun n'est ferme (les 21 premiers jours), on montre la
+  // photographie des positions ouvertes, marquee comme provisoire.
+  if (s.fermes && s.fermes.nb > 0) {
+    $("tauxReussite").textContent =
+      Math.round(100 * s.fermes.gagnes / s.fermes.nb) + " %";
+  } else {
+    const gains = s.gains_latents ? Object.values(s.gains_latents) : [];
+    $("tauxReussite").textContent = gains.length
+      ? "~" + Math.round(100 * gains.filter((g) => g > 0).length / gains.length) + " %"
+      : "—";
+  }
 
   const actif = s.mode === "live";
   $("statutLabel").textContent = actif ? "Actif" : "Répétition";
@@ -274,6 +282,7 @@ function gonfler(c) {
       achat: x[2], quantite: x[3], vente_envoyee: x[5] ? "oui" : null })),
     candidats_du_jour: (c.c || []).map((x) => ({
       symbole: x[0], ton: x[1], societe: x[2] || "" })),
+    fermes: c.f ? { nb: c.f[0], gagnes: c.f[1], gain_total: c.f[2] } : null,
   };
 }
 
