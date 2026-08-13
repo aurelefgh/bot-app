@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#efe9dd">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icone-192.png">
+<link rel="apple-touch-icon" href="icone-192.png">
+<title>Suivi Bot Trading</title>
+<style>
+  :root {
+    --fond: #efe9dd;
+    --carte: #ffffff;
+    --encre: #1c1712;
+    --sourdine: #8a8071;
+    --rouille: #a63d2f;
+    --vert: #2e7d4f;
+    --trait: #e3dccb;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--fond); color: var(--encre);
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: max(env(safe-area-inset-top), 18px) 18px 40px;
+    max-width: 520px; margin: 0 auto;
+  }
+  .etiquette {
+    font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--rouille);
+  }
+  .sous { font-size: 11px; font-weight: 600; letter-spacing: .12em;
+          text-transform: uppercase; color: var(--sourdine); }
+
+  /* ── portefeuille ─────────────────────────────────────────── */
+  header { padding: 14px 2px 18px; }
+  #valeur {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 44px; font-weight: 700; letter-spacing: -.01em;
+    margin-top: 6px;
+  }
+  #liquidites { color: var(--sourdine); font-size: 13px; margin-top: 4px; }
+
+  /* ── cartes de stats ──────────────────────────────────────── */
+  .grille {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+    background: var(--trait); border: 1px solid var(--trait);
+    border-radius: 14px; overflow: hidden;
+  }
+  .stat { background: var(--carte); padding: 14px 16px; }
+  .stat b {
+    display: block; margin-top: 5px;
+    font-family: Georgia, serif; font-size: 21px; font-weight: 700;
+  }
+  .positif { color: var(--vert); }
+  .negatif { color: var(--rouille); }
+
+  /* ── barre de l'agent ─────────────────────────────────────── */
+  #agent {
+    margin-top: 14px; background: var(--carte); border: 1px solid var(--trait);
+    border-radius: 14px; padding: 14px 16px;
+  }
+  #agent .ligne1 { display: flex; justify-content: space-between;
+                   align-items: center; }
+  .pastille {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--vert); margin-right: 7px;
+    animation: bat 2.4s ease-in-out infinite;
+  }
+  .pastille.pause { background: var(--sourdine); animation: none; }
+  @keyframes bat { 50% { opacity: .35; } }
+  #agent dl { margin-top: 10px; display: grid;
+              grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 13px; }
+  #agent dt { color: var(--sourdine); }
+  #agent dd { font-weight: 600; text-align: right; }
+
+  /* ── listes ───────────────────────────────────────────────── */
+  section { margin-top: 22px; }
+  .entetes { display: flex; justify-content: space-between;
+             align-items: baseline; padding: 0 2px 10px; }
+  .rangee {
+    background: var(--carte); border: 1px solid var(--trait);
+    border-radius: 12px; padding: 13px 15px; margin-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px;
+  }
+  .rangee .gauche { min-width: 0; }
+  .titre-ligne { display: flex; align-items: center; gap: 8px; }
+  .sym { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
+  .badge {
+    font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; padding: 3px 7px; border-radius: 5px;
+    border: 1px solid var(--trait); color: var(--sourdine);
+  }
+  .badge.sobre  { color: var(--rouille); border-color: #e8c4bb; }
+  .badge.initie { color: #1f5f8b; border-color: #bcd7e8; }
+  .detail { color: var(--sourdine); font-size: 12px; margin-top: 4px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .droite { text-align: right; flex-shrink: 0; }
+  .pl { font-family: Georgia, serif; font-weight: 700; font-size: 15px; }
+  .etat-pos { font-size: 10.5px; letter-spacing: .1em; color: var(--sourdine);
+              text-transform: uppercase; margin-top: 3px; }
+  .vide { color: var(--sourdine); font-size: 13px; padding: 6px 2px; }
+
+  /* ── pied ─────────────────────────────────────────────────── */
+  footer {
+    margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--trait);
+    color: var(--sourdine); font-size: 11.5px; line-height: 1.6;
+  }
+  #maj { font-weight: 600; }
+  #hors-ligne {
+    display: none; margin: 14px 0; padding: 12px 15px; border-radius: 12px;
+    background: #f7e5e0; color: var(--rouille); font-size: 13px;
+    border: 1px solid #e8c4bb;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="etiquette">Mon portefeuille</div>
+  <div id="valeur">—</div>
+  <div id="liquidites"></div>
+</header>
+
+<div id="hors-ligne">Impossible de joindre le bot — le serveur du portable
+est-il allumé ?</div>
+
+<div id="verrou" style="display:none; position:fixed; inset:0; z-index:50;
+     background:var(--fond); padding:60px 26px; text-align:center;">
+  <div class="etiquette" style="font-size:13px">Suivi Bot Trading</div>
+  <p style="margin:18px 0 22px; color:var(--sourdine); font-size:14px;
+            line-height:1.5">Ces données sont chiffrées.<br>
+     Entre ton code secret (une seule fois sur cet appareil).</p>
+  <input id="code" type="password" placeholder="XXXX-XXXX-XXXX"
+         autocomplete="off" style="width:100%; max-width:280px; padding:12px;
+         font-size:16px; text-align:center; letter-spacing:.15em;
+         border:1px solid var(--trait); border-radius:10px;
+         text-transform:uppercase;">
+  <br>
+  <button id="ouvrir" style="margin-top:14px; padding:12px 34px;
+          font-size:15px; font-weight:700; color:#fff;
+          background:var(--rouille); border:none; border-radius:10px;">
+    Déverrouiller</button>
+  <p id="verrou-erreur" style="display:none; color:var(--rouille);
+     margin-top:12px; font-size:13px">Code incorrect — réessaie.</p>
+</div>
+
+<div class="grille">
+  <div class="stat"><span class="sous">P/L latent</span><b id="pl">—</b></div>
+  <div class="stat"><span class="sous">Positions</span><b id="npos">—</b></div>
+  <div class="stat"><span class="sous">Candidats du jour</span><b id="ncand">—</b></div>
+  <div class="stat"><span class="sous">Jambe dirigeants</span><b id="jambe" style="font-size:15px">—</b></div>
+</div>
+
+<div id="agent">
+  <div class="ligne1">
+    <span class="etiquette" style="color:var(--encre)">
+      <span class="pastille" id="pastille"></span>Agent — <span id="mode">…</span>
+    </span>
+    <span class="sous" id="derniere"></span>
+  </div>
+  <dl>
+    <dt>Stratégie</dt><dd>Ton sobre 21 j + achats de dirigeants</dd>
+    <dt>Prochain passage</dt><dd id="prochain">21 h 40</dd>
+  </dl>
+</div>
+
+<section>
+  <div class="entetes">
+    <span class="etiquette" style="color:var(--encre)">Positions</span>
+    <span class="sous">tenues 21 jours</span>
+  </div>
+  <div id="positions"><div class="vide">chargement…</div></div>
+</section>
+
+<section>
+  <div class="entetes">
+    <span class="etiquette" style="color:var(--encre)">Candidats du jour</span>
+    <span class="sous">les plus sobres</span>
+  </div>
+  <div id="candidats"><div class="vide">chargement…</div></div>
+</section>
+
+<footer>
+  Compte <b>paper</b> (argent fictif) — l'attente mesurée est de +5 à +10 %
+  par an au-dessus du marché ; le verdict demande une saison, pas une semaine.
+  <br><span id="maj"></span>
+</footer>
+
+<script>
+"use strict";
+
+const $ = (id) => document.getElementById(id);
+const euros = (x, signe = false) =>
+  (signe && x > 0 ? "+" : "") +
+  x.toLocaleString("fr-FR", { minimumFractionDigits: 2,
+                              maximumFractionDigits: 2 }) + " $";
+
+function classePL(x) { return x >= 0 ? "positif" : "negatif"; }
+
+function afficher(s) {
+  $("hors-ligne").style.display = "none";
+
+  if (s.compte) {
+    $("valeur").textContent = euros(s.compte.valeur);
+    $("liquidites").textContent =
+      "dont " + euros(s.compte.liquidites) + " de liquidités";
+  } else {
+    $("valeur").textContent = "répétition";
+    $("liquidites").textContent = "aucun ordre passé dans ce mode";
+  }
+
+  const gains = s.gains_latents ? Object.values(s.gains_latents) : [];
+  const pl = gains.reduce((a, b) => a + b, 0);
+  $("pl").textContent = gains.length ? euros(pl, true) : "—";
+  $("pl").className = classePL(pl);
+
+  $("npos").textContent =
+    s.positions.length + " / " + s.reglages.max_positions;
+  $("ncand").textContent = s.candidats_du_jour.length;
+  $("jambe").textContent =
+    s.reglages.jambe_inities_live ? "ACTIVE" : "observation";
+
+  $("mode").textContent = s.mode === "live" ? "EN SERVICE" : "RÉPÉTITION";
+  $("pastille").className = "pastille" + (s.mode === "live" ? "" : " pause");
+  $("derniere").textContent = "passage " + s.derniere_execution.slice(5, 16)
+                                             .replace("T", " ");
+
+  // ── positions ──
+  const pos = $("positions");
+  pos.innerHTML = "";
+  if (!s.positions.length) {
+    pos.innerHTML = '<div class="vide">aucune position — le bot attend ' +
+                    'ses premiers candidats</div>';
+  }
+  for (const p of s.positions) {
+    const g = s.gains_latents ? s.gains_latents[p.symbole] : undefined;
+    const badge = p.signal === "achat_initie"
+      ? '<span class="badge initie">dirigeant</span>'
+      : '<span class="badge sobre">sobre</span>';
+    const etatPos = p.vente_envoyee ? "vente en cours"
+      : (g === undefined ? "en attente d'exécution" : "ouverte");
+    pos.insertAdjacentHTML("beforeend", `
+      <div class="rangee">
+        <div class="gauche">
+          <div class="titre-ligne"><span class="sym">${p.symbole}</span>${badge}</div>
+          <div class="detail">depuis le ${p.achat} · ${p.quantite} titres</div>
+        </div>
+        <div class="droite">
+          <div class="pl ${g !== undefined ? classePL(g) : ""}">
+            ${g !== undefined ? euros(g, true) : "—"}</div>
+          <div class="etat-pos">${etatPos}</div>
+        </div>
+      </div>`);
+  }
+
+  // ── candidats ──
+  const cand = $("candidats");
+  cand.innerHTML = "";
+  if (!s.candidats_du_jour.length) {
+    cand.innerHTML = '<div class="vide">aucun candidat retenu au dernier ' +
+                     'passage</div>';
+  }
+  for (const c of s.candidats_du_jour) {
+    cand.insertAdjacentHTML("beforeend", `
+      <div class="rangee">
+        <div class="gauche">
+          <div class="titre-ligne"><span class="sym">${c.symbole}</span></div>
+          <div class="detail">${c.societe || ""}</div>
+        </div>
+        <div class="droite">
+          <div class="pl">${c.ton.toFixed(3)}</div>
+          <div class="etat-pos">ton</div>
+        </div>
+      </div>`);
+  }
+
+  $("maj").textContent = "Affichage actualisé à " +
+    new Date().toLocaleTimeString("fr-FR") +
+    " — données du passage de " + s.derniere_execution.slice(11, 16) + ".";
+}
+
+// ── deux sources de donnees : le PC (a la maison) et le relais public ──
+const NTFY = "https://ntfy.sh/aurele-bot-statut-k7m2x9q4/json?poll=1";
+
+function gonfler(c) {   // format compact du relais -> format complet
+  return {
+    derniere_execution: c.d,
+    mode: c.m,
+    reglages: { max_positions: c.mp, jambe_inities_live: c.j,
+                part_sobre: 20, jours_tenue: 21 },
+    compte: c.v != null ? { valeur: c.v, liquidites: c.l } : null,
+    gains_latents: Object.fromEntries(
+      (c.p || []).filter((x) => x[4] != null).map((x) => [x[0], x[4]])),
+    positions: (c.p || []).map((x) => ({
+      symbole: x[0], signal: x[1] === "i" ? "achat_initie" : "sobre",
+      achat: x[2], quantite: x[3], vente_envoyee: x[5] ? "oui" : null })),
+    candidats_du_jour: (c.c || []).map((x) => ({
+      symbole: x[0], ton: x[1], societe: x[2] || "" })),
+  };
+}
+
+async function depuisLePC() {
+  const r = await fetch("statut.json", { cache: "no-store" });
+  if (!r.ok) throw new Error();
+  return await r.json();
+}
+
+// ── dechiffrement : la cle ne quitte jamais le telephone ──
+async function dechiffrer(b64, code) {
+  const brut = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
+  const matiere = await crypto.subtle.importKey(
+    "raw", new TextEncoder().encode(code), "PBKDF2", false, ["deriveKey"]);
+  const cle = await crypto.subtle.deriveKey(
+    { name: "PBKDF2", salt: new TextEncoder().encode("bot-chiffres-v1"),
+      iterations: 200000, hash: "SHA-256" },
+    matiere, { name: "AES-GCM", length: 256 }, false, ["decrypt"]);
+  const clair = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: brut.slice(0, 12) }, cle, brut.slice(12));
+  return JSON.parse(new TextDecoder().decode(clair));
+}
+
+function demanderLeCode() {
+  $("verrou").style.display = "block";
+}
+
+async function depuisLHote() {
+  // le statut chiffre publie a cote de l'application (GitHub Pages)
+  const r = await fetch("statut_chiffre.json", { cache: "no-store" });
+  if (!r.ok) throw new Error();
+  const c = await r.json();
+  if (!c || !c.e) throw new Error();
+  const code = localStorage.getItem("code-secret");
+  if (!code) throw new Error("code absent");
+  try {
+    const s = await dechiffrer(c.e, code);
+    return s.derniere_execution ? s : gonfler(s);
+  } catch (e) {
+    if (String(e.message).startsWith("code")) throw e;
+    localStorage.removeItem("code-secret");
+    throw new Error("code invalide");
+  }
+}
+
+async function depuisLeRelais() {
+  const r = await fetch(NTFY, { cache: "no-store" });
+  const lignes = (await r.text()).trim().split("\n").filter(Boolean);
+  for (let i = lignes.length - 1; i >= 0; i--) {   // le plus recent d'abord
+    try {
+      const msg = JSON.parse(lignes[i]);
+      if (msg.event !== "message" || !msg.message) continue;
+      const c = JSON.parse(msg.message);
+      if (c && c.e) {                              // enveloppe chiffree
+        const code = localStorage.getItem("code-secret");
+        if (!code) throw new Error("code absent");
+        try {
+          return gonfler(await dechiffrer(c.e, code));
+        } catch {
+          localStorage.removeItem("code-secret");  // code devenu faux
+          throw new Error("code invalide");
+        }
+      }
+      if (c && c.d) return gonfler(c);             // ancien format en clair
+    } catch (e) {
+      if (String(e.message).startsWith("code")) throw e;
+      /* message etranger : on passe */
+    }
+  }
+  throw new Error();
+}
+
+$("ouvrir").addEventListener("click", async () => {
+  const code = $("code").value.trim().toUpperCase();
+  if (!code) return;
+  localStorage.setItem("code-secret", code);
+  $("verrou-erreur").style.display = "none";
+  try {                                            // le code marche ?
+    try { await depuisLHote(); } catch { await depuisLeRelais(); }
+    $("verrou").style.display = "none";
+    actualiser();
+  } catch {
+    $("verrou-erreur").style.display = "block";
+  }
+});
+$("code").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("ouvrir").click();
+});
+
+async function actualiser() {
+  // le verrou ne s'impose que s'il est VRAIMENT necessaire : si une source
+  // en clair (le PC de la maison) suffit, on ne demande rien
+  let s = null, besoinCode = false;
+  for (const source of [depuisLePC, depuisLHote, depuisLeRelais]) {
+    try {
+      const cand = await source();
+      if (!s || cand.derniere_execution > s.derniere_execution) s = cand;
+    } catch (e) {
+      if (String(e && e.message).startsWith("code")) besoinCode = true;
+    }
+  }
+  if (s) {
+    $("verrou").style.display = "none";
+    afficher(s);
+  } else if (besoinCode) {
+    demanderLeCode();
+  } else {
+    $("hors-ligne").style.display = "block";
+  }
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+actualiser();
+setInterval(actualiser, 60_000);
+</script>
+</body>
+</html>
