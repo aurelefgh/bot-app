@@ -3,291 +3,267 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#efe9dd">
+<meta name="theme-color" content="#f3f2f2">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icone-192.png">
 <link rel="apple-touch-icon" href="icone-192.png">
 <title>Suivi Bot Trading</title>
 <style>
-  :root {
-    --fond: #efe9dd;
-    --carte: #ffffff;
-    --encre: #1c1712;
-    --sourdine: #8a8071;
-    --rouille: #a63d2f;
-    --vert: #2e7d4f;
-    --trait: #e3dccb;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--fond); color: var(--encre);
-    font-family: system-ui, -apple-system, sans-serif;
-    padding: max(env(safe-area-inset-top), 18px) 18px 40px;
-    max-width: 520px; margin: 0 auto;
-  }
-  .etiquette {
-    font-size: 11px; font-weight: 700; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--rouille);
-  }
-  .sous { font-size: 11px; font-weight: 600; letter-spacing: .12em;
-          text-transform: uppercase; color: var(--sourdine); }
+/* ── les jetons EXACTS du design system "Modernist" de la maquette ────── */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap');
+:root {
+  --color-bg: #f3f2f2;
+  --color-surface: #eae9e9;
+  --color-text: #201e1d;
+  --color-accent: #ec3013;
+  --color-divider: color-mix(in srgb, #201e1d 40%, transparent);
+  --color-neutral-200: #eae7e7;
+  --color-neutral-300: #d7d3d3;
+  --color-neutral-400: #bab6b6;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #7d7979;
+  --color-neutral-700: #605d5d;
+  --color-neutral-800: #444141;
+  --color-accent-300: #ffc4b8;
+  --color-accent-700: #ae1800;
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-body: "Archivo", system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body{margin:0;background:#dedcda;display:flex;justify-content:center;padding:0;font-family:Archivo,system-ui,sans-serif}
+@keyframes rowIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-  /* ── portefeuille ─────────────────────────────────────────── */
-  header { padding: 14px 2px 18px; }
-  #valeur {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 44px; font-weight: 700; letter-spacing: -.01em;
-    margin-top: 6px;
-  }
-  #liquidites { color: var(--sourdine); font-size: 13px; margin-top: 4px; }
+/* la colonne de l'appli : plein ecran sur telephone, largeur maquette sur PC */
+#app{width:min(470px,100vw);min-height:100vh;min-height:100dvh}
 
-  /* ── cartes de stats ──────────────────────────────────────── */
-  .grille {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
-    background: var(--trait); border: 1px solid var(--trait);
-    border-radius: 14px; overflow: hidden;
-  }
-  .stat { background: var(--carte); padding: 14px 16px; }
-  .stat b {
-    display: block; margin-top: 5px;
-    font-family: Georgia, serif; font-size: 21px; font-weight: 700;
-  }
-  .positif { color: var(--vert); }
-  .negatif { color: var(--rouille); }
-
-  /* ── barre de l'agent ─────────────────────────────────────── */
-  #agent {
-    margin-top: 14px; background: var(--carte); border: 1px solid var(--trait);
-    border-radius: 14px; padding: 14px 16px;
-  }
-  #agent .ligne1 { display: flex; justify-content: space-between;
-                   align-items: center; }
-  .pastille {
-    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    background: var(--vert); margin-right: 7px;
-    animation: bat 2.4s ease-in-out infinite;
-  }
-  .pastille.pause { background: var(--sourdine); animation: none; }
-  @keyframes bat { 50% { opacity: .35; } }
-  #agent dl { margin-top: 10px; display: grid;
-              grid-template-columns: auto 1fr; gap: 5px 14px; font-size: 13px; }
-  #agent dt { color: var(--sourdine); }
-  #agent dd { font-weight: 600; text-align: right; }
-
-  /* ── listes ───────────────────────────────────────────────── */
-  section { margin-top: 22px; }
-  .entetes { display: flex; justify-content: space-between;
-             align-items: baseline; padding: 0 2px 10px; }
-  .rangee {
-    background: var(--carte); border: 1px solid var(--trait);
-    border-radius: 12px; padding: 13px 15px; margin-bottom: 8px;
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 10px;
-  }
-  .rangee .gauche { min-width: 0; }
-  .titre-ligne { display: flex; align-items: center; gap: 8px; }
-  .sym { font-weight: 800; font-size: 15px; letter-spacing: .02em; }
-  .badge {
-    font-size: 9.5px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; padding: 3px 7px; border-radius: 5px;
-    border: 1px solid var(--trait); color: var(--sourdine);
-  }
-  .badge.sobre  { color: var(--rouille); border-color: #e8c4bb; }
-  .badge.initie { color: #1f5f8b; border-color: #bcd7e8; }
-  .detail { color: var(--sourdine); font-size: 12px; margin-top: 4px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .droite { text-align: right; flex-shrink: 0; }
-  .pl { font-family: Georgia, serif; font-weight: 700; font-size: 15px; }
-  .etat-pos { font-size: 10.5px; letter-spacing: .1em; color: var(--sourdine);
-              text-transform: uppercase; margin-top: 3px; }
-  .vide { color: var(--sourdine); font-size: 13px; padding: 6px 2px; }
-
-  /* ── pied ─────────────────────────────────────────────────── */
-  footer {
-    margin-top: 30px; padding-top: 14px; border-top: 1px solid var(--trait);
-    color: var(--sourdine); font-size: 11.5px; line-height: 1.6;
-  }
-  #maj { font-weight: 600; }
-  #hors-ligne {
-    display: none; margin: 14px 0; padding: 12px 15px; border-radius: 12px;
-    background: #f7e5e0; color: var(--rouille); font-size: 13px;
-    border: 1px solid #e8c4bb;
-  }
+/* ── l'ecran de verrouillage, dans le meme langage visuel ─────────────── */
+#verrou{position:fixed;inset:0;z-index:50;display:none;place-items:center;
+  background:var(--color-bg);padding:24px}
+#verrou.visible{display:grid}
+#verrou .boite{width:min(340px,100%);text-align:center}
+#verrou input{width:100%;min-height:42px;padding:6px 10px;font:inherit;
+  font-size:16px;text-align:center;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--color-text);caret-color:var(--color-accent);
+  background:var(--color-surface);border:1px solid var(--color-divider);border-radius:0}
+#verrou button{margin-top:12px;width:100%;cursor:pointer;
+  font-family:var(--font-heading);font-weight:800;font-size:14px;
+  padding:12px;border:1px solid transparent;border-radius:0;
+  background:var(--color-accent);color:var(--color-bg)}
+#verrou button:hover{background:#dd2b0f}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="etiquette">Mon portefeuille</div>
-  <div id="valeur">—</div>
-  <div id="liquidites"></div>
-</header>
-
-<div id="hors-ligne">Impossible de joindre le bot — le serveur du portable
-est-il allumé ?</div>
-
-<div id="verrou" style="display:none; position:fixed; inset:0; z-index:50;
-     background:var(--fond); padding:60px 26px; text-align:center;">
-  <div class="etiquette" style="font-size:13px">Suivi Bot Trading</div>
-  <p style="margin:18px 0 22px; color:var(--sourdine); font-size:14px;
-            line-height:1.5">Ces données sont chiffrées.<br>
-     Entre ton code secret (une seule fois sur cet appareil).</p>
-  <input id="code" type="password" placeholder="XXXX-XXXX-XXXX"
-         autocomplete="off" style="width:100%; max-width:280px; padding:12px;
-         font-size:16px; text-align:center; letter-spacing:.15em;
-         border:1px solid var(--trait); border-radius:10px;
-         text-transform:uppercase;">
-  <br>
-  <button id="ouvrir" style="margin-top:14px; padding:12px 34px;
-          font-size:15px; font-weight:700; color:#fff;
-          background:var(--rouille); border:none; border-radius:10px;">
-    Déverrouiller</button>
-  <p id="verrou-erreur" style="display:none; color:var(--rouille);
-     margin-top:12px; font-size:13px">Code incorrect — réessaie.</p>
+<div id="verrou">
+  <div class="boite">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#ae1800">Suivi Bot Trading</div>
+    <p style="margin:14px 0 18px;font-size:13px;color:var(--color-neutral-700);line-height:1.5">
+      Ces données sont chiffrées.<br>Entre ton code secret (une seule fois sur cet appareil).</p>
+    <input id="code" type="password" placeholder="XXXX-XXXX-XXXX" autocomplete="off">
+    <button id="ouvrir" type="button">Déverrouiller</button>
+    <p id="verrou-erreur" style="display:none;color:var(--color-accent-700);margin-top:10px;font-size:12px">Code incorrect — réessaie.</p>
+  </div>
 </div>
 
-<div class="grille">
-  <div class="stat"><span class="sous">P/L latent</span><b id="pl">—</b></div>
-  <div class="stat"><span class="sous">Positions</span><b id="npos">—</b></div>
-  <div class="stat"><span class="sous">Candidats du jour</span><b id="ncand">—</b></div>
-  <div class="stat"><span class="sous">Jambe dirigeants</span><b id="jambe" style="font-size:15px">—</b></div>
+<!-- ═══ LA MAQUETTE, A L'IDENTIQUE — seules les donnees sont devenues vraies ═══ -->
+<div id="app">
+<div style="display:flex;flex-direction:column;min-height:100dvh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+  <div style="padding:calc(env(safe-area-inset-top, 0px) + 26px) 20px 0;border-bottom:2px solid var(--color-divider)">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#ae1800">Mon portefeuille</div>
+    <div style="display:flex;align-items:flex-end;gap:14px;margin-top:4px">
+      <div id="solde" style="font-family:var(--font-heading);font-size:36px;font-weight:700;letter-spacing:-.02em;line-height:1.05">—</div>
+      <svg viewBox="0 0 100 30" preserveAspectRatio="none" style="flex:1;height:34px;min-width:0;margin-bottom:3px">
+        <polyline id="spark" points="" fill="none" stroke="var(--color-accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"></polyline>
+      </svg>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;margin-top:12px;border-top:1px solid var(--color-neutral-300)">
+      <div style="padding:8px 12px 8px 0;border-bottom:1px solid var(--color-neutral-300)">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">P/L du jour</div>
+        <div id="pnlJour" style="font-size:15px;font-weight:700">—</div>
+      </div>
+      <div style="padding:8px 0 8px 12px;border-left:1px solid var(--color-neutral-300);border-bottom:1px solid var(--color-neutral-300)">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">P/L depuis le lancement</div>
+        <div id="pnlTotal" style="font-size:15px;font-weight:700">—</div>
+      </div>
+      <div style="padding:8px 12px 10px 0">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">Positions</div>
+        <div id="nbTrades" style="font-size:15px;font-weight:700">—</div>
+      </div>
+      <div style="padding:8px 0 10px 12px;border-left:1px solid var(--color-neutral-300)">
+        <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-neutral-700)">Taux de réussite</div>
+        <div id="tauxReussite" style="font-size:15px;font-weight:700">—</div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:12px 20px 14px;border-bottom:2px solid var(--color-divider)">
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="statutDot" style="width:8px;height:8px;background:var(--color-neutral-500)"></span>
+      <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase">Agent — <span id="statutLabel">…</span></span>
+      <span style="margin-left:auto;font-size:11px;color:var(--color-neutral-700)">actif depuis <strong id="uptime" style="color:var(--color-text)">—</strong></span>
+    </div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:5px 14px;margin-top:10px;font-size:12px">
+      <span style="color:var(--color-neutral-700)">Stratégie</span><strong>Ton sobre 21 j — actions US</strong>
+      <span style="color:var(--color-neutral-700)">Dernière action</span><strong id="derniereAction">—</strong>
+    </div>
+  </div>
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;background:#ffffff">
+    <div style="display:flex;align-items:baseline;gap:8px;padding:12px 20px 10px;border-bottom:1px solid var(--color-neutral-300)">
+      <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase">Positions</span>
+      <span style="font-size:11px;color:var(--color-neutral-700)">tenues 21 jours</span>
+    </div>
+    <div id="listeTransactions"></div>
+    <div style="display:flex;align-items:baseline;gap:8px;padding:12px 20px 10px;border-top:2px solid var(--color-divider);border-bottom:1px solid var(--color-neutral-300)">
+      <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase">Candidats du jour</span>
+      <span style="font-size:11px;color:var(--color-neutral-700)">les plus sobres</span>
+    </div>
+    <div id="listeCandidats" style="flex:1"></div>
+    <div style="padding:10px 20px calc(env(safe-area-inset-bottom, 0px) + 12px);font-size:10px;line-height:1.5;color:var(--color-neutral-600);border-top:1px solid var(--color-neutral-200)">
+      Compte paper (argent fictif). <span id="maj"></span>
+    </div>
+  </div>
 </div>
-
-<div id="agent">
-  <div class="ligne1">
-    <span class="etiquette" style="color:var(--encre)">
-      <span class="pastille" id="pastille"></span>Agent — <span id="mode">…</span>
-    </span>
-    <span class="sous" id="derniere"></span>
-  </div>
-  <dl>
-    <dt>Stratégie</dt><dd>Ton sobre 21 j + achats de dirigeants</dd>
-    <dt>Prochain passage</dt><dd id="prochain">21 h 40</dd>
-  </dl>
 </div>
-
-<section>
-  <div class="entetes">
-    <span class="etiquette" style="color:var(--encre)">Positions</span>
-    <span class="sous">tenues 21 jours</span>
-  </div>
-  <div id="positions"><div class="vide">chargement…</div></div>
-</section>
-
-<section>
-  <div class="entetes">
-    <span class="etiquette" style="color:var(--encre)">Candidats du jour</span>
-    <span class="sous">les plus sobres</span>
-  </div>
-  <div id="candidats"><div class="vide">chargement…</div></div>
-</section>
-
-<footer>
-  Compte <b>paper</b> (argent fictif) — l'attente mesurée est de +5 à +10 %
-  par an au-dessus du marché ; le verdict demande une saison, pas une semaine.
-  <br><span id="maj"></span>
-</footer>
 
 <script>
 "use strict";
-
 const $ = (id) => document.getElementById(id);
-const euros = (x, signe = false) =>
-  (signe && x > 0 ? "+" : "") +
-  x.toLocaleString("fr-FR", { minimumFractionDigits: 2,
-                              maximumFractionDigits: 2 }) + " $";
 
-function classePL(x) { return x >= 0 ? "positif" : "negatif"; }
-
-function afficher(s) {
-  $("hors-ligne").style.display = "none";
-
-  if (s.compte) {
-    $("valeur").textContent = euros(s.compte.valeur);
-    $("liquidites").textContent =
-      "dont " + euros(s.compte.liquidites) + " de liquidités";
-  } else {
-    $("valeur").textContent = "répétition";
-    $("liquidites").textContent = "aucun ordre passé dans ce mode";
-  }
-
-  const gains = s.gains_latents ? Object.values(s.gains_latents) : [];
-  const pl = gains.reduce((a, b) => a + b, 0);
-  $("pl").textContent = gains.length ? euros(pl, true) : "—";
-  $("pl").className = classePL(pl);
-
-  $("npos").textContent =
-    s.positions.length + " / " + s.reglages.max_positions;
-  $("ncand").textContent = s.candidats_du_jour.length;
-  $("jambe").textContent =
-    s.reglages.jambe_inities_live ? "ACTIVE" : "observation";
-
-  $("mode").textContent = s.mode === "live" ? "EN SERVICE" : "RÉPÉTITION";
-  $("pastille").className = "pastille" + (s.mode === "live" ? "" : " pause");
-  $("derniere").textContent = "passage " + s.derniere_execution.slice(5, 16)
-                                             .replace("T", " ");
-
-  // ── positions ──
-  const pos = $("positions");
-  pos.innerHTML = "";
-  if (!s.positions.length) {
-    pos.innerHTML = '<div class="vide">aucune position — le bot attend ' +
-                    'ses premiers candidats</div>';
-  }
-  for (const p of s.positions) {
-    const g = s.gains_latents ? s.gains_latents[p.symbole] : undefined;
-    const badge = p.signal === "achat_initie"
-      ? '<span class="badge initie">dirigeant</span>'
-      : '<span class="badge sobre">sobre</span>';
-    const etatPos = p.vente_envoyee ? "vente en cours"
-      : (g === undefined ? "en attente d'exécution" : "ouverte");
-    pos.insertAdjacentHTML("beforeend", `
-      <div class="rangee">
-        <div class="gauche">
-          <div class="titre-ligne"><span class="sym">${p.symbole}</span>${badge}</div>
-          <div class="detail">depuis le ${p.achat} · ${p.quantite} titres</div>
-        </div>
-        <div class="droite">
-          <div class="pl ${g !== undefined ? classePL(g) : ""}">
-            ${g !== undefined ? euros(g, true) : "—"}</div>
-          <div class="etat-pos">${etatPos}</div>
-        </div>
-      </div>`);
-  }
-
-  // ── candidats ──
-  const cand = $("candidats");
-  cand.innerHTML = "";
-  if (!s.candidats_du_jour.length) {
-    cand.innerHTML = '<div class="vide">aucun candidat retenu au dernier ' +
-                     'passage</div>';
-  }
-  for (const c of s.candidats_du_jour) {
-    cand.insertAdjacentHTML("beforeend", `
-      <div class="rangee">
-        <div class="gauche">
-          <div class="titre-ligne"><span class="sym">${c.symbole}</span></div>
-          <div class="detail">${c.societe || ""}</div>
-        </div>
-        <div class="droite">
-          <div class="pl">${c.ton.toFixed(3)}</div>
-          <div class="etat-pos">ton</div>
-        </div>
-      </div>`);
-  }
-
-  $("maj").textContent = "Affichage actualisé à " +
-    new Date().toLocaleTimeString("fr-FR") +
-    " — données du passage de " + s.derniere_execution.slice(11, 16) + ".";
+// ── les memes conventions que la maquette ─────────────────────────────────
+function fmt(v, signe) {
+  const s = Math.abs(v).toLocaleString("fr-FR",
+    { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (signe ? (v >= 0 ? "+" : "−") : (v < 0 ? "−" : "")) + s + " $";
+}
+function couleurPL(v) {
+  return v >= 0 ? "var(--color-text)" : "var(--color-accent-700)";
+}
+function spark(h) {
+  if (h.length < 2) return "0,15 100,15";
+  const min = Math.min(...h), max = Math.max(...h), span = max - min || 1;
+  return h.map((v, i) => (i / (h.length - 1) * 100).toFixed(1) + "," +
+                         (27 - (v - min) / span * 24).toFixed(1)).join(" ");
 }
 
-// ── deux sources de donnees : le PC (a la maison) et le relais public ──
+// ── le lancement reel du bot : les compteurs partent de la ────────────────
+const LANCEMENT = new Date("2026-08-13T15:30:00+02:00");
+const CAPITAL_LANCEMENT = 85796.60;
+
+function ligne(g1, g2, d1, d2, d1Color) {
+  return `<div style="display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:11px 20px;border-bottom:1px solid var(--color-neutral-200);animation:rowIn .35s ease both">
+    <div style="display:flex;align-items:center;gap:8px">${g1}</div>
+    <div style="text-align:right;font-size:14px;font-weight:700;color:${d1Color}">${d1}</div>
+    <div style="font-size:11px;color:var(--color-neutral-700)">${g2}</div>
+    <div style="text-align:right;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-700)">${d2}</div>
+  </div>`;
+}
+const vide = (texte) => `<div style="padding:14px 20px;font-size:12px;color:var(--color-neutral-600)">${texte}</div>`;
+
+function afficher(s) {
+  const compte = s.compte;
+
+  if (compte) {
+    $("solde").textContent = fmt(compte.valeur);
+
+    // l'historique du solde vit sur l'appareil (pour la courbe)
+    let h = [];
+    try { h = JSON.parse(localStorage.getItem("historique") || "[]"); } catch {}
+    if (!h.length || Math.abs(h[h.length - 1] - compte.valeur) > 0.005) {
+      h.push(compte.valeur); h = h.slice(-40);
+      localStorage.setItem("historique", JSON.stringify(h));
+    }
+    $("spark").setAttribute("points", spark(h));
+
+    // P/L du jour : par rapport a la premiere valeur vue aujourd'hui
+    const jour = new Date().toISOString().slice(0, 10);
+    let ref = null;
+    try { ref = JSON.parse(localStorage.getItem("reference-jour")); } catch {}
+    if (!ref || ref.jour !== jour) {
+      ref = { jour, valeur: compte.valeur };
+      localStorage.setItem("reference-jour", JSON.stringify(ref));
+    }
+    const pj = compte.valeur - ref.valeur;
+    $("pnlJour").textContent = fmt(pj, true);
+    $("pnlJour").style.color = couleurPL(pj);
+
+    const pt = compte.valeur - CAPITAL_LANCEMENT;
+    $("pnlTotal").textContent = fmt(pt, true);
+    $("pnlTotal").style.color = couleurPL(pt);
+  }
+
+  $("nbTrades").textContent =
+    s.positions.length + " / " + s.reglages.max_positions;
+
+  const gains = s.gains_latents ? Object.values(s.gains_latents) : [];
+  $("tauxReussite").textContent = gains.length
+    ? Math.round(100 * gains.filter((g) => g > 0).length / gains.length) + " %"
+    : "—";
+
+  const actif = s.mode === "live";
+  $("statutLabel").textContent = actif ? "Actif" : "Répétition";
+  $("statutDot").style.background =
+    actif ? "var(--color-accent)" : "var(--color-neutral-500)";
+  $("statutDot").style.animation = actif ? "blink 1.6s infinite" : "none";
+
+  const upMin = Math.max(0, Math.floor((Date.now() - LANCEMENT) / 60000));
+  $("uptime").textContent =
+    upMin >= 2880 ? Math.floor(upMin / 1440) + " j " +
+                    Math.floor((upMin % 1440) / 60) + " h"
+                  : Math.floor(upMin / 60) + " h " +
+                    String(upMin % 60).padStart(2, "0");
+
+  // ── positions = les vraies lignes du bot ──
+  const badge = (texte, plein) =>
+    `<span style="font-size:10px;font-weight:600;letter-spacing:.08em;padding:2px 6px;border:1px solid ${
+      plein ? "var(--color-accent-300)" : "var(--color-neutral-400)"};color:${
+      plein ? "var(--color-accent-700)" : "var(--color-neutral-800)"}">${texte}</span>`;
+
+  const conteneur = $("listeTransactions");
+  if (!s.positions.length) {
+    conteneur.innerHTML = vide(
+      "Aucune position — le prochain passage est à 21 h 40.");
+    $("derniereAction").textContent = "—";
+  } else {
+    const tri = s.positions.slice().sort((a, b) => (a.achat < b.achat ? 1 : -1));
+    conteneur.innerHTML = tri.map((p) => {
+      const g = s.gains_latents ? s.gains_latents[p.symbole] : undefined;
+      const statut = p.vente_envoyee ? "Vente en cours"
+        : (g === undefined ? "En attente" : "Ouvert");
+      const source = p.signal === "achat_initie" ? "achat de dirigeant" : "ton sobre";
+      return ligne(
+        `<span style="font-size:14px;font-weight:700">${p.symbole}</span>` +
+          badge("ACHAT", true),
+        `${p.achat} · ${p.quantite} titres · ${source}`,
+        g !== undefined ? fmt(g, true) : "…",
+        statut,
+        g === undefined ? "var(--color-neutral-600)" : couleurPL(g));
+    }).join("");
+    const d = tri[0];
+    $("derniereAction").textContent = "ACHAT " + d.symbole + " · " + d.achat;
+  }
+
+  // ── candidats sobres du dernier passage ──
+  const cand = $("listeCandidats");
+  cand.innerHTML = s.candidats_du_jour.length
+    ? s.candidats_du_jour.map((c) => ligne(
+        `<span style="font-size:14px;font-weight:700">${c.symbole}</span>` +
+          badge("SOBRE", false),
+        c.societe || "",
+        c.ton.toFixed(3),
+        "ton", "var(--color-text)")).join("")
+    : vide("Aucun candidat retenu au dernier passage.");
+
+  $("maj").textContent = "Données du passage de " +
+    s.derniere_execution.slice(5, 16).replace("T", " ") +
+    " — actualisé à " + new Date().toLocaleTimeString("fr-FR") + ".";
+}
+
+// ── les trois sources de donnees + le chiffrement (inchanges) ─────────────
 const NTFY = "https://ntfy.sh/aurele-bot-statut-k7m2x9q4/json?poll=1";
 
-function gonfler(c) {   // format compact du relais -> format complet
+function gonfler(c) {
   return {
-    derniere_execution: c.d,
-    mode: c.m,
+    derniere_execution: c.d, mode: c.m,
     reglages: { max_positions: c.mp, jambe_inities_live: c.j,
                 part_sobre: 20, jours_tenue: 21 },
     compte: c.v != null ? { valeur: c.v, liquidites: c.l } : null,
@@ -301,13 +277,6 @@ function gonfler(c) {   // format compact du relais -> format complet
   };
 }
 
-async function depuisLePC() {
-  const r = await fetch("statut.json", { cache: "no-store" });
-  if (!r.ok) throw new Error();
-  return await r.json();
-}
-
-// ── dechiffrement : la cle ne quitte jamais le telephone ──
 async function dechiffrer(b64, code) {
   const brut = Uint8Array.from(atob(b64), (ch) => ch.charCodeAt(0));
   const matiere = await crypto.subtle.importKey(
@@ -321,16 +290,7 @@ async function dechiffrer(b64, code) {
   return JSON.parse(new TextDecoder().decode(clair));
 }
 
-function demanderLeCode() {
-  $("verrou").style.display = "block";
-}
-
-async function depuisLHote() {
-  // le statut chiffre publie a cote de l'application (GitHub Pages)
-  const r = await fetch("statut_chiffre.json", { cache: "no-store" });
-  if (!r.ok) throw new Error();
-  const c = await r.json();
-  if (!c || !c.e) throw new Error();
+async function ouvrirEnveloppe(c) {
   const code = localStorage.getItem("code-secret");
   if (!code) throw new Error("code absent");
   try {
@@ -343,53 +303,38 @@ async function depuisLHote() {
   }
 }
 
+async function depuisLePC() {
+  const r = await fetch("statut.json", { cache: "no-store" });
+  if (!r.ok) throw new Error();
+  return await r.json();
+}
+
+async function depuisLHote() {
+  const r = await fetch("statut_chiffre.json", { cache: "no-store" });
+  if (!r.ok) throw new Error();
+  const c = await r.json();
+  if (!c || !c.e) throw new Error();
+  return await ouvrirEnveloppe(c);
+}
+
 async function depuisLeRelais() {
   const r = await fetch(NTFY, { cache: "no-store" });
   const lignes = (await r.text()).trim().split("\n").filter(Boolean);
-  for (let i = lignes.length - 1; i >= 0; i--) {   // le plus recent d'abord
+  for (let i = lignes.length - 1; i >= 0; i--) {
     try {
       const msg = JSON.parse(lignes[i]);
       if (msg.event !== "message" || !msg.message) continue;
       const c = JSON.parse(msg.message);
-      if (c && c.e) {                              // enveloppe chiffree
-        const code = localStorage.getItem("code-secret");
-        if (!code) throw new Error("code absent");
-        try {
-          return gonfler(await dechiffrer(c.e, code));
-        } catch {
-          localStorage.removeItem("code-secret");  // code devenu faux
-          throw new Error("code invalide");
-        }
-      }
-      if (c && c.d) return gonfler(c);             // ancien format en clair
+      if (c && c.e) return await ouvrirEnveloppe(c);
+      if (c && c.d) return gonfler(c);
     } catch (e) {
-      if (String(e.message).startsWith("code")) throw e;
-      /* message etranger : on passe */
+      if (String(e && e.message).startsWith("code")) throw e;
     }
   }
   throw new Error();
 }
 
-$("ouvrir").addEventListener("click", async () => {
-  const code = $("code").value.trim().toUpperCase();
-  if (!code) return;
-  localStorage.setItem("code-secret", code);
-  $("verrou-erreur").style.display = "none";
-  try {                                            // le code marche ?
-    try { await depuisLHote(); } catch { await depuisLeRelais(); }
-    $("verrou").style.display = "none";
-    actualiser();
-  } catch {
-    $("verrou-erreur").style.display = "block";
-  }
-});
-$("code").addEventListener("keydown", (e) => {
-  if (e.key === "Enter") $("ouvrir").click();
-});
-
 async function actualiser() {
-  // le verrou ne s'impose que s'il est VRAIMENT necessaire : si une source
-  // en clair (le PC de la maison) suffit, on ne demande rien
   let s = null, besoinCode = false;
   for (const source of [depuisLePC, depuisLHote, depuisLeRelais]) {
     try {
@@ -400,14 +345,34 @@ async function actualiser() {
     }
   }
   if (s) {
-    $("verrou").style.display = "none";
+    $("verrou").classList.remove("visible");
     afficher(s);
   } else if (besoinCode) {
-    demanderLeCode();
+    $("verrou").classList.add("visible");
   } else {
-    $("hors-ligne").style.display = "block";
+    $("maj").textContent = "Impossible de joindre le bot pour l'instant.";
   }
 }
+
+$("ouvrir").addEventListener("click", async () => {
+  const code = $("code").value.trim().toUpperCase();
+  if (!code) return;
+  localStorage.setItem("code-secret", code);
+  $("verrou-erreur").style.display = "none";
+  try {
+    try { await depuisLHote(); } catch (e) {
+      if (!String(e.message).startsWith("code")) await depuisLeRelais();
+      else throw e;
+    }
+    $("verrou").classList.remove("visible");
+    actualiser();
+  } catch {
+    $("verrou-erreur").style.display = "block";
+  }
+});
+$("code").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") $("ouvrir").click();
+});
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
