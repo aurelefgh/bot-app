@@ -118,6 +118,25 @@ body{margin:0;background:#dedcda;display:flex;justify-content:center;padding:0;f
       <span style="font-size:11px;color:var(--color-neutral-700)">les plus sobres</span>
     </div>
     <div id="listeCandidats" style="flex:1"></div>
+
+    <!-- ═══ ARGOS — le bot de Claude (statut separe, meme code secret) ═══ -->
+    <div id="argosBloc" style="display:none">
+      <div style="padding:14px 20px 12px;border-top:2px solid var(--color-divider);background:var(--color-surface)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span id="argosDot" style="width:8px;height:8px;background:var(--color-neutral-500)"></span>
+          <span style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase">ARGOS — le bot de Claude</span>
+          <span id="argosValeur" style="margin-left:auto;font-family:var(--font-heading);font-size:18px;font-weight:700">—</span>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:10px;font-size:12px">
+          <span style="color:var(--color-neutral-700)">Règle</span><strong id="argosRegle">—</strong>
+          <span style="color:var(--color-neutral-700)">P/L depuis le début</span><strong id="argosPL">—</strong>
+          <span style="color:var(--color-neutral-700)">Trades clos</span><strong id="argosFermes">—</strong>
+        </div>
+        <div id="argosVerdict" style="margin-top:8px;font-size:10px;line-height:1.5;color:var(--color-neutral-600)"></div>
+      </div>
+      <div id="argosListe" style="background:#fff"></div>
+    </div>
+
     <div style="padding:10px 20px calc(env(safe-area-inset-bottom, 0px) + 12px);font-size:10px;line-height:1.5;color:var(--color-neutral-600);border-top:1px solid var(--color-neutral-200)">
       Compte paper (argent fictif). <span id="maj"></span>
     </div>
@@ -343,6 +362,46 @@ async function depuisLeRelais() {
   throw new Error();
 }
 
+// ── ARGOS : statut separe, meme code, panneau independant ────────────────
+function afficherArgos(s) {
+  $("argosBloc").style.display = "block";
+  const v = s.compte.valeur;
+  $("argosValeur").textContent = fmt(v);
+  $("argosRegle").textContent =
+    (s.regle === "guidance_battue" ? "promesse battue · 5 séances"
+     : s.regle === "observation" ? "observation (aucun achat)" : s.regle);
+  $("argosDot").style.background = s.regle === "observation"
+    ? "var(--color-neutral-500)" : "var(--color-accent)";
+  $("argosDot").style.animation =
+    s.regle === "observation" ? "none" : "blink 1.6s infinite";
+  const pl = v - s.capital_depart;
+  $("argosPL").textContent = fmt(pl, true);
+  $("argosPL").style.color = couleurPL(pl);
+  $("argosFermes").textContent = s.fermes.nb
+    ? `${s.fermes.nb} · ${s.fermes.gagnes} gagnés · ${fmt(s.fermes.gain_total, true)}`
+    : "aucun (tenue 5 séances)";
+  $("argosVerdict").textContent = "Preuve : " + (s.verdict || "");
+  $("argosListe").innerHTML = s.positions.length
+    ? s.positions.map((p) => ligne(
+        `<span style="font-size:14px;font-weight:700">${p.symbole}</span>`,
+        `${p.achat} · séance ${p.seances}/${p.tenue}`,
+        p.gain_latent != null ? fmt(p.gain_latent, true) : "…",
+        "Ouvert",
+        p.gain_latent != null ? couleurPL(p.gain_latent)
+                              : "var(--color-neutral-600)")).join("")
+    : vide("Aucune position ouverte.");
+}
+
+async function actualiserArgos() {
+  try {
+    const r = await fetch("statut_argos_chiffre.json", { cache: "no-store" });
+    if (!r.ok) return;
+    const c = await r.json();
+    if (!c || !c.e) return;
+    afficherArgos(await ouvrirEnveloppe(c));
+  } catch {}     // pas de statut ARGOS : le panneau reste simplement cache
+}
+
 async function actualiser() {
   let s = null, besoinCode = false;
   for (const source of [depuisLePC, depuisLHote, depuisLeRelais]) {
@@ -356,6 +415,7 @@ async function actualiser() {
   if (s) {
     $("verrou").classList.remove("visible");
     afficher(s);
+    actualiserArgos();
   } else if (besoinCode) {
     $("verrou").classList.add("visible");
   } else {
